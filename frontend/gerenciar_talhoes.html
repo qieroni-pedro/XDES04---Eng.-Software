@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroGestor - Módulo de Talhões</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <preconnect href="https://fonts.googleapis.com"></preconnect>
+    <preconnect href="https://fonts.gstatic.com" crossorigin></preconnect>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans flex h-screen overflow-hidden antialiased">
+
+    <div id="sidebar-container" class="shrink-0"></div>
+
+    <main class="flex-1 flex flex-col overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center shrink-0">
+            <div>
+                <h1 class="text-base font-semibold text-slate-800 tracking-tight">Gerenciamento de Talhões</h1>
+                <p class="text-xs text-slate-500 mt-0.5">Controle de áreas cultiváveis e classificação de solo.</p>
+            </div>
+            <button id="btn-novo-talhao" onclick="abrirModalCadastro()" class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2 px-4 rounded-lg text-xs shadow-sm transition-all flex items-center gap-2 cursor-pointer">
+                <i class="bi bi-plus-lg"></i> Novo Talhão
+            </button>
+        </header>
+
+        <div class="p-8 space-y-6 max-w-7xl w-full mx-auto">
+            
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div>
+                    <label class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">Nome do Talhão</label>
+                    <input type="text" id="filtro-nome" placeholder="Buscar por nome..." class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-700 focus:border-emerald-700">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">Área Mínima (ha)</label>
+                    <input type="number" id="filtro-area-min" step="0.1" placeholder="Ex: 10" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-700 focus:border-emerald-700">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">Área Máxima (ha)</label>
+                    <input type="number" id="filtro-area-max" step="0.1" placeholder="Ex: 500" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-700 focus:border-emerald-700">
+                </div>
+                <button onclick="carregarTalhoes()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-1.5 px-4 rounded-lg text-xs transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="bi bi-filter"></i> Filtrar Registros
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/75 border-b border-slate-200 text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-wider">
+                            <th class="px-6 py-3.5">Identificação / Nome</th>
+                            <th class="px-6 py-3.5">Área Total (Hectares)</th>
+                            <th class="px-6 py-3.5">Classificação do Solo</th>
+                            <th class="px-6 py-3.5 text-right">Ações Operacionais</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-talhoes" class="divide-y divide-slate-200 text-xs text-slate-700">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="modal-talhao" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden transform transition-all">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                <h3 id="modal-titulo" class="text-sm font-semibold text-slate-800">Cadastrar Novo Talhão</h3>
+                <button onclick="fecharModal()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="bi bi-x-lg"></i></button>
+            </div>
+            
+            <form id="form-talhao" class="p-6 space-y-4">
+                <input type="hidden" id="txt-id">
+                
+                <div>
+                    <label for="txt-nome" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Nome do Talhão</label>
+                    <input type="text" id="txt-nome" required placeholder="Ex: Gleba Norte - T4" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-emerald-700 focus:border-emerald-700">
+                </div>
+
+                <div>
+                    <label for="txt-area" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Área (ha)</label>
+                    <input type="number" id="txt-area" step="0.01" required placeholder="0.00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-emerald-700 focus:border-emerald-700">
+                </div>
+
+                <div>
+                    <label for="cmb-solo" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Tipo de Solo</label>
+                    <select id="cmb-solo" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-emerald-700 focus:border-emerald-700">
+                        <option value="Argiloso">Argiloso</option>
+                        <option value="Arenoso">Arenoso</option>
+                        <option value="Misto">Misto</option>
+                    </select>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-2 border-t border-slate-100 mt-4">
+                    <button type="button" onclick="fecharModal()" class="px-4 py-2 rounded-lg text-xs border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium cursor-pointer">Cancelar</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg text-xs bg-emerald-700 hover:bg-emerald-800 text-white font-semibold shadow-sm cursor-pointer">Salvar Registro</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/components.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/talhoes.js"></script>
+</body>
+</html>

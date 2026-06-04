@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroGestor - Governança & Compliance Rural</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <preconnect href="https://fonts.googleapis.com"></preconnect>
+    <preconnect href="https://fonts.gstatic.com" crossorigin></preconnect>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans h-screen flex items-center justify-center antialiased selection:bg-emerald-600 selection:text-white">
+
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200/60 flex max-w-4xl w-full overflow-hidden m-4 h-[550px]">
+        <div class="hidden md:flex md:w-1/2 bg-gradient-to-b from-emerald-900 to-emerald-950 p-12 text-white flex-col justify-between relative">
+            <div>
+                <div class="flex items-center space-x-3 text-xl font-bold tracking-tight">
+                    <i class="bi bi-shield-check text-emerald-400 text-2xl"></i>
+                    <span class="text-white">Agro<span class="text-emerald-400 font-medium">Gestor</span></span>
+                </div>
+                <p class="text-emerald-200/60 text-[10px] mt-1.5 font-mono tracking-widest uppercase">SISTEMA DE AUDITORIA E COMPLIANCE AGRÍCOLA</p>
+            </div>
+            
+            <div class="z-10">
+                <div class="inline-flex items-center gap-1.5 bg-white/10 border border-white/10 text-emerald-300 px-2.5 py-1 rounded-md text-[11px] font-mono mb-4">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    RASTREABILIDADE JURÍDICA ASSEGURADA
+                </div>
+                <h1 class="text-2xl font-semibold leading-snug text-white">Mitigação de risco e governança de ponta a ponta.</h1>
+                <p class="text-xs text-emerald-100/70 mt-3 leading-relaxed font-light">Consolide registros de manejo imutáveis em conformidade jurídica para investidores, seguradoras e linhas de crédito rural (ESG).</p>
+            </div>
+            
+            <div class="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-40"></div>
+        </div>
+
+        <div class="w-full md:w-1/2 p-8 sm:p-12 flex flex-col justify-center bg-white">
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-slate-800 tracking-tight">Autenticação Corporativa</h2>
+                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Insira os parâmetros de credenciais para liberação dos logs operacionais.</p>
+            </div>
+
+            <div id="alert-erro" class="hidden bg-red-50 border border-red-200 text-red-700 p-3 mb-5 rounded-lg text-xs flex items-start gap-2.5 transition-all" role="alert">
+                <i class="bi bi-exclamation-octagon text-base shrink-0 mt-0.5 text-red-600"></i>
+                <div>
+                    <span class="font-semibold">Falha na autenticação:</span> 
+                    <span id="alert-mensagem" class="opacity-90">As credenciais informadas foram recusadas pelo validador.</span>
+                </div>
+            </div>
+
+            <form id="form-login" class="space-y-4">
+                <div>
+                    <label for="txt-email" class="block text-[10px] font-mono font-medium text-slate-500 uppercase tracking-wider mb-2">E-mail Institucional</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                            <i class="bi bi-envelope text-sm"></i>
+                        </span>
+                        <input type="email" id="txt-email" name="email" required
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-700 focus:border-emerald-700 transition-all font-medium"
+                            placeholder="operacao@agrogestor.com">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="txt-senha" class="block text-[10px] font-mono font-medium text-slate-500 uppercase tracking-wider mb-2">Assinatura Digital / Senha</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
+                            <i class="bi bi-lock text-sm"></i>
+                        </span>
+                        <input type="password" id="txt-senha" name="password" required
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-700 focus:border-emerald-700 transition-all font-medium tracking-widest"
+                            placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit" id="btn-entrar"
+                    class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2.5 px-4 rounded-lg text-xs shadow-sm transition-all transform active:scale-[0.99] mt-3 cursor-pointer flex justify-center items-center gap-2">
+                    <span id="btn-texto">Validar e Acessar Logs</span>
+                    <i class="bi bi-arrow-right-short text-base"></i>
+                </button>
+            </form>
+
+            <footer class="mt-8 pt-4 border-t border-slate-100 text-center">
+                <p class="text-[10px] text-slate-400 font-mono tracking-normal">Ambiente Seguro — Criptografia de ponta a ponta ativa.</p>
+            </footer>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/login.js"></script>
+</body>
+</html>
