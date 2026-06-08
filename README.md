@@ -16,17 +16,27 @@ A estrutura base do ecossistema foi desenvolvida focando em padrões de mercado,
 
 ### 2. Trilha de Auditoria (Sistema de Logs de Segurança)
 O sistema conta com um mecanismo automático de compliance e segurança. Toda operação crítica (inserção, edição, exclusão lógica) é registrada na tabela `logs_auditoria`, armazenando o autor da ação, o evento e o timestamp em formato UTC (ISO 8601).
-* **Utilitário de Consulta:** Desenvolvido o script `conculta_log.py` na raiz para renderização e monitoramento dos logs formatados direto no terminal.
+* **Utilitário de Consulta:** Desenvolvido o script `consulta_log.py` na raiz para renderização e monitoramento dos logs formatados direto no terminal.
 
-### 3. Inteligência do Dashboard (Módulo Safras)
+### 3. Módulo de Safras — CRUD 3 (Sprint 2)
+Localizado em `backend/app/routers/safras.py` e `frontend/js/safras.js`, este módulo implementa o ciclo de vida completo de uma safra agrícola (RFS05–RFS08), com todas as regras de negócio do DRE aplicadas na camada de backend:
+
+* **RFS05 – Inserir Safra:** Cadastro vinculado a um talhão com validação de campos obrigatórios, status inicial e verificação de conflito de períodos.
+* **RFS06 – Editar Safra:** Edição com bloqueio dinâmico de campos após início do cultivo (talhão, variedade e data de início tornam-se somente leitura conforme RN06).
+* **RFS07 – Consultar Safras:** Listagem com filtros opcionais por talhão, variedade e status, scoped por fazenda do usuário autenticado via `JOIN` com `equipe_fazendas`.
+* **RFS08 – Excluir Safra:** Exclusão lógica (`soft delete`, `ativo = 0`) bloqueada caso a safra possua atividades vinculadas.
+* **Encerramento de Safra (`PATCH /encerrar`):** Endpoint dedicado que registra a data real de colheita e a produtividade final (sc/ha), liberando o campo somente neste momento (RN07).
+* **Regras de negócio aplicadas no backend:** RN01 (conflito de safras simultâneas no mesmo talhão), RN03 (data de colheita posterior ao plantio), RN05 (produtividade bloqueada até encerramento), RN07 (gatilho de liberação do campo de produtividade) e RNF05 (toda operação gera registro em `logs_auditoria`).
+
+### 4. Inteligência do Dashboard (Módulo Safras)
 Localizado em `backend/app/routers/safras.py`, este endpoint realiza a agregação de dados em tempo real para alimentar a camada visual do front-end:
 * **Card 1 (Progresso):** Cálculo matemático dinâmico do percentual de atividades concluídas (`Realizado`) sobre o total da safra.
 * **Card 2 (Linha do Tempo):** Cruzamento de dados (`JOIN`) com a tabela de usuários para listar cronologicamente as próximas 5 tarefas agendadas e seus respectivos responsáveis.
 * **Card 3 (Alertas Críticos):** Filtro automatizado de eventos climáticos extremos vinculados à safra.
 
-### 4. Automação de Testes (QA/DevOps)
+### 5. Automação de Testes — v2 (QA/DevOps)
 * **Tecnologia:** Selenium WebDriver.
-* **Escopo:** Script automatizado (`testes_selenium/teste_fluxo_completo.py`) que simula o fluxo completo do usuário no navegador (Login de Gestor, Login de Técnico, CRUD de Funcionários e Talhões, Validação de Permissões de Telas), garantindo a integridade da aplicação contra regressões de código.
+* **Escopo:** Script automatizado (`testes_selenium/teste_fluxo_completo.py`) que simula o fluxo completo do usuário no navegador (Login de Gestor, Login de Técnico, CRUD de Funcionários e Talhões, CRUD de Safras, Validação de Permissões de Telas).
 
 ---
 
@@ -37,7 +47,7 @@ Localizado em `backend/app/routers/safras.py`, este endpoint realiza a agregaç�
 │   ├── app/
 │   │   ├── routers/
 │   │   │   ├── auth.py            # Endpoints de autenticação de usuários
-│   │   │   ├── safras.py          # Lógica de agregação do Dashboard (BI)
+│   │   │   ├── safras.py          # CRUD de Safras + agregação do Dashboard (BI)
 │   │   │   ├── talhoes.py         # Regras de negócio e rotas de Talhões
 │   │   │   └── usuarios.py        # Gestão e rotas de Usuários/Funcionários
 │   │   ├── utils/
@@ -57,15 +67,18 @@ Localizado em `backend/app/routers/safras.py`, este endpoint realiza a agregaç�
 │   │   ├── dashboard.js           # Consumo de dados e renderização do safras.py
 │   │   ├── funcionario.js         # Manipulação do DOM do CRUD de Funcionários
 │   │   ├── login.js               # Envio e tratamento do formulário de login
+│   │   ├── safras.js              # Manipulação do DOM do CRUD de Safras
 │   │   └── talhoes.js             # Manipulação do DOM do CRUD de Talhões
 │   ├── dashboard.html             # Painel visual com os 3 cards principais
 │   ├── gerenciar_funcionarios.html# Interface de administração da equipe
+│   ├── gerenciar_safras.html      # Interface de administração de safras
 │   ├── gerenciar_talhoes.html     # Interface de administração de talhões
 │   └── index.html                 # Tela de Login/Entrada do sistema
 │
 ├── testes_selenium/
 │   ├── venv/                      # Ambiente virtual isolado para a camada de QA
-│   └── teste_fluxo_completo.py    # Robô de automação de testes End-to-End (E2E)
+│   └── teste_fluxo_completo.py    # Robô de automação de testes E2E
 │
 ├── .gitignore                     # Filtro de arquivos descartáveis para o Git
 └── requirements.txt               # Dependências globais do projeto (FastAPI, Selenium, etc)
+```

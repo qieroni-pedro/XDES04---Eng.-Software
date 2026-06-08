@@ -39,8 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         <i class="bi bi-geo-alt"></i> <span>Módulo Talhões</span>
                     </a>
 
-                    <a href="#" class="flex items-center space-x-3 text-emerald-200/40 cursor-not-allowed px-4 py-2.5 text-xs font-medium">
-                        <i class="bi bi-tree"></i> <span>Gerenciar Safras (Futuro)</span>
+                    <a href="gerenciar_safras.html" id="menu-safras" class="flex items-center space-x-3 text-emerald-100 hover:bg-emerald-800/50 px-4 py-2.5 rounded-lg text-xs font-medium transition-all">
+                        <i class="bi bi-tree"></i> <span>Gerenciar Safras</span>
                     </a>
                     <a href="#" class="flex items-center space-x-3 text-emerald-200/40 cursor-not-allowed px-4 py-2.5 text-xs font-medium">
                         <i class="bi bi-journal-check"></i> <span>Registrar Atividades (Futuro)</span>
@@ -63,19 +63,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function aplicarPermissoesMenu() {
     const perfil = localStorage.getItem('user_perfil');
-    
+    const paginaAtual = window.location.pathname.split("/").pop();
+
+    // Regras RBAC // DRE seção 2.2
+    // Gestor  : Talhões (CRUD) | Funcionários | Relatórios | Dashboard
+    // Técnico : Talhões (editar/consultar) | Safras | Atividades | Eventos | Relatórios | Dashboard
+
     if (perfil === 'Técnico Agrícola') {
-        const menuFuncionarios = document.getElementById('menu-funcionarios');
-        if (menuFuncionarios) menuFuncionarios.classList.add('hidden');
+        // Técnico não gerencia Funcionários
+        document.getElementById('menu-funcionarios')?.classList.add('hidden');
+
+        // Proteção de rota: redireciona se Técnico tentar acessar diretamente
+        const rotasBloqueadasTecnico = ['gerenciar_funcionarios.html'];
+        if (rotasBloqueadasTecnico.includes(paginaAtual)) {
+            window.location.href = 'dashboard.html';
+            return;
+        }
     }
 
-    const paginaAtual = window.location.pathname.split("/").pop();
-    if (paginaAtual === "dashboard.html") {
-        document.getElementById('menu-dashboard')?.classList.add('bg-emerald-800', 'text-white');
-    } else if (paginaAtual === "gerenciar_talhoes.html") {
-        document.getElementById('menu-talhoes')?.classList.add('bg-emerald-800', 'text-white');
-    } else if (paginaAtual === "gerenciar_funcionarios.html") {
-        document.getElementById('menu-funcionarios')?.classList.add('bg-emerald-800', 'text-white');
+    // Destaque do item ativo na sidebar
+    const mapaAtivo = {
+        'dashboard.html':              'menu-dashboard',
+        'gerenciar_talhoes.html':      'menu-talhoes',
+        'gerenciar_safras.html':       'menu-safras',
+        'gerenciar_funcionarios.html': 'menu-funcionarios',
+    };
+    const idAtivo = mapaAtivo[paginaAtual];
+    if (idAtivo) {
+        document.getElementById(idAtivo)?.classList.add('bg-emerald-800', 'text-white');
     }
 }
 

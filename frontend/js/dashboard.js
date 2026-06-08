@@ -32,17 +32,23 @@ async function carregarOpcoesDeSafras(selectElement) {
 
         if (!response.ok) throw new Error();
 
-        const safras = await response.json(); // Espera uma lista de safras: [{id: 1, nome: "Safra 2024/25 - Soja"}, ...]
-        
-        selectElement.innerHTML = ""; // Limpa o "Carregando safras..."
-        
+        // API retorna: { id, nome_talhao, variedade_cultura, status, ... }
+        const todasSafras = await response.json();
+
+        // Dashboard só exibe safras ativas (Em andamento) conforme RFS17
+        const safras = todasSafras.filter(s => s.status === "Em andamento");
+
+        selectElement.innerHTML = "";
+
         if (safras.length === 0) {
-            selectElement.innerHTML = `<option value="">Nenhuma safra cadastrada</option>`;
+            selectElement.innerHTML = `<option value="">Nenhuma safra em andamento</option>`;
             return;
         }
 
         safras.forEach(safra => {
-            selectElement.innerHTML += `<option value="${safra.id}">${safra.nome}</option>`;
+            // Monta label legível: "Talhão Norte 05 – Soja M6410"
+            const label = `${safra.nome_talhao} – ${safra.variedade_cultura}`;
+            selectElement.innerHTML += `<option value="${safra.id}">${label}</option>`;
         });
 
     } catch (error) {
