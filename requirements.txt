@@ -1,0 +1,4 @@
+fastapi==0.110.0      # Framework principal para a construção da API e das rotas (Endpoints)
+uvicorn==0.28.0       # Servidor ASGI de alta performance para rodar e testar a API FastAPI localmente
+pydantic[email]==2.6.4 # Validação de dados de entrada e checagem automática de formato de e-mails (EmailStr)
+PyJWT==2.8.0          # Geração, assinatura e decodificação de tokens de autenticação criptografados (JWT)

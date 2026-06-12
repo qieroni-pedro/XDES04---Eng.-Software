@@ -1,0 +1,9 @@
+# Pastas de ambiente e cache
+venv/
+__pycache__/
+
+# Arquivos do backend
+backend/banco.py
+backend/consulta_banco.py
+backend/consulta_log.py
+README.md
