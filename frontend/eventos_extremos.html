@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroGestor - Eventos Extremos</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <preconnect href="https://fonts.googleapis.com"></preconnect>
+    <preconnect href="https://fonts.gstatic.com" crossorigin></preconnect>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans flex h-screen overflow-hidden antialiased">
+
+    <div id="sidebar-container" class="shrink-0"></div>
+
+    <main class="flex-1 flex flex-col overflow-y-auto">
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center shrink-0">
+            <div>
+                <h1 class="text-base font-semibold text-slate-800 tracking-tight">Eventos Extremos e Sinistros</h1>
+                <p class="text-xs text-slate-500 mt-0.5">Registro de anomalias climáticas, sinistros e quebras críticas para fins de compliance.</p>
+            </div>
+            <button id="btn-novo-evento" onclick="abrirModalEvento()" class="bg-rose-700 hover:bg-rose-800 text-white font-semibold py-2 px-4 rounded-lg text-xs shadow-sm transition-all flex items-center gap-2 cursor-pointer">
+                <i class="bi bi-exclamation-triangle"></i> Registrar Evento Extremo
+            </button>
+        </header>
+
+        <div class="p-8 space-y-6 max-w-7xl w-full mx-auto">
+            <div id="alert-container" class="hidden"></div>
+
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap gap-4 items-end text-xs">
+                <div class="w-full sm:w-64">
+                    <label for="filtro-safra" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1">* Filtrar por Safra</label>
+                    <select id="filtro-safra" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-rose-700 text-slate-700">
+                        <option value="">Todas as safras</option>
+                    </select>
+                </div>
+                <div class="w-52">
+                    <label for="filtro-tipo" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1"># Tipo de Sinistro</label>
+                    <select id="filtro-tipo" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-rose-700 text-slate-700">
+                        <option value="">Todos os tipos</option>
+                        <option value="Granizo">Granizo</option>
+                        <option value="Seca/Estiagem">Seca/Estiagem</option>
+                        <option value="Geada">Geada</option>
+                        <option value="Vendaval/Tempestade">Vendaval/Tempestade</option>
+                        <option value="Quebra Crítica de Maquinário">Quebra Crítica de Maquinário</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/75 border-b border-slate-200 text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-wider">
+                            <th class="px-6 py-3.5">Safra / Cultura</th>
+                            <th class="px-6 py-3.5">Tipo de Evento</th>
+                            <th class="px-6 py-3.5">Data da Ocorrência</th>
+                            <th class="px-6 py-3.5">Descrição detalhada dos danos</th>
+                            <th class="px-6 py-3.5 text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-eventos" class="divide-y divide-slate-200 text-xs text-slate-700">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal: Registrar Evento -->
+    <div id="modal-evento" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden transform transition-all">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                <h3 id="modal-titulo" class="text-sm font-semibold text-slate-800">Protocolar Ocorrência Extrema</h3>
+                <button onclick="fecharModalEvento()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="bi bi-x-lg"></i></button>
+            </div>
+            
+            <form id="form-evento" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                <div>
+                    <label for="id_safra" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Selecionar Safra Afetada</label>
+                    <select id="id_safra" name="id_safra" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-rose-700 focus:border-rose-700 text-slate-700">
+                        <option value="">Carregando safras em andamento...</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="tipo_evento" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Natureza do Evento</label>
+                    <select id="tipo_evento" name="tipo_evento" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-rose-700 focus:border-rose-700 text-slate-700">
+                        <option value="">-- Escolha o Sinistro Climático --</option>
+                        <option value="Granizo">Granizo</option>
+                        <option value="Seca/Estiagem">Seca/Estiagem</option>
+                        <option value="Geada">Geada</option>
+                        <option value="Vendaval/Tempestade">Vendaval/Tempestade</option>
+                        <option value="Quebra Crítica de Maquinário">Quebra Crítica de Maquinário</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="data_ocorrência" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Data da Ocorrência</label>
+                    <input type="date" id="data_ocorrência" name="data_ocorrência" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-rose-700 text-slate-700">
+                </div>
+
+                <div>
+                    <label for="descricao_danos" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Relatório Descritivo de Danos</label>
+                    <textarea id="descricao_danos" name="descricao_danos" rows="3" required placeholder="Descreva os impactos visíveis, estimativas de perdas foliares ou avarias estruturais..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-rose-700 focus:border-rose-700 text-slate-700 placeholder:text-slate-400"></textarea>
+                </div>
+
+                <div class="pt-4 flex justify-end gap-2 border-t border-slate-100 mt-6">
+                    <button type="button" onclick="fecharModalEvento()" class="px-4 py-2 rounded-lg text-xs border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium cursor-pointer">Cancelar</button>
+                    <button type="submit" id="btn-submit" class="px-4 py-2 rounded-lg text-xs bg-rose-700 hover:bg-rose-800 text-white font-semibold shadow-sm cursor-pointer">Confirmar e Gravar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Visualizar Evento -->
+    <div id="modal-visualizar" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden transform transition-all">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-sm font-semibold text-slate-800">Detalhes do Evento Extremo</h3>
+                <button onclick="fecharModalVisualizar()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="bi bi-x-lg"></i></button>
+            </div>
+
+            <!-- Estado: Carregando -->
+            <div id="modal-vis-loading" class="p-10 flex flex-col items-center gap-3 text-slate-400">
+                <i class="bi bi-arrow-repeat text-2xl animate-spin"></i>
+                <span class="text-xs">Consultando registro...</span>
+            </div>
+
+            <!-- Estado: Erro -->
+            <div id="modal-vis-erro" class="hidden p-8 flex flex-col items-center gap-3 text-center">
+                <i class="bi bi-exclamation-circle text-2xl text-rose-400"></i>
+                <p class="text-xs text-slate-500">Não foi possível carregar os dados deste evento. Tente novamente.</p>
+            </div>
+
+            <!-- Estado: Conteúdo -->
+            <div id="modal-vis-conteudo" class="hidden p-6 space-y-4">
+                <!-- Badge tipo evento -->
+                <div class="flex items-center gap-3 p-3 bg-rose-50 rounded-xl border border-rose-100">
+                    <i class="bi bi-exclamation-triangle-fill text-rose-600 text-lg"></i>
+                    <div>
+                        <p class="text-[10px] font-mono font-medium text-rose-400 uppercase tracking-wider mb-0.5">Tipo de sinistro</p>
+                        <p id="vis-tipo" class="text-sm font-semibold text-rose-800"></p>
+                    </div>
+                </div>
+
+                <!-- Grid: safra + data -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <p class="text-[10px] font-mono font-medium text-slate-400 uppercase tracking-wider mb-1">Safra afetada</p>
+                        <p id="vis-safra" class="text-xs font-semibold text-slate-800"></p>
+                        <p id="vis-talhao" class="text-[11px] text-slate-500 mt-0.5"></p>
+                    </div>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <p class="text-[10px] font-mono font-medium text-slate-400 uppercase tracking-wider mb-1">Data da ocorrência</p>
+                        <p id="vis-data" class="text-xs font-semibold text-slate-800 font-mono"></p>
+                    </div>
+                </div>
+
+                <!-- Descrição -->
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    <p class="text-[10px] font-mono font-medium text-slate-400 uppercase tracking-wider mb-2">Relatório descritivo de danos</p>
+                    <p id="vis-descricao" class="text-xs text-slate-700 leading-relaxed"></p>
+                </div>
+
+                <!-- Rodapé com ID -->
+                <div class="flex items-center gap-2 px-1">
+                    <i class="bi bi-hash text-slate-300 text-sm"></i>
+                    <span class="text-[11px] font-mono text-slate-400">ID do registro: <span id="vis-id" class="text-slate-600 font-medium"></span></span>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-slate-100 flex justify-end">
+                <button onclick="fecharModalVisualizar()" class="px-4 py-2 rounded-lg text-xs border border-slate-200 text-slate-600 hover:bg-slate-50 font-medium cursor-pointer">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/components.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/eventos.js"></script>
+</body>
+</html>

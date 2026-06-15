@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroGestor - Módulo de Safras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .badge-planejada       { background:#EFF6FF; color:#1D4ED8; border:1px solid #BFDBFE; }
+        .badge-andamento       { background:#FFFBEB; color:#D97706; border:1px solid #FDE68A; }
+        .badge-colhida         { background:#F0FDF4; color:#15803D; border:1px solid #BBF7D0; }
+        .modal-enter           { animation: fadeIn .15s ease; }
+        @keyframes fadeIn      { from { opacity:0; transform:scale(.97); } to { opacity:1; transform:scale(1); } }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans flex h-screen overflow-hidden antialiased">
+
+    <div id="sidebar-container" class="shrink-0"></div>
+
+    <main class="flex-1 flex flex-col overflow-y-auto">
+        <!-- Cabeçalho -->
+        <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center shrink-0">
+            <div>
+                <h1 class="text-base font-semibold text-slate-800 tracking-tight">Gerenciamento de Safras</h1>
+                <p class="text-xs text-slate-500 mt-0.5">Abertura, acompanhamento e encerramento de ciclos produtivos.</p>
+            </div>
+            <button id="btn-nova-safra" onclick="abrirModalAbertura()"
+                class="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2 px-4 rounded-lg text-xs shadow-sm transition-all flex items-center gap-2 cursor-pointer">
+                <i class="bi bi-plus-lg"></i> Abrir Nova Safra
+            </button>
+        </header>
+
+        <div class="p-8 space-y-6 max-w-7xl w-full mx-auto">
+
+            <!-- Filtros (RFS07) -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div>
+                    <label class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">Talhão</label>
+                    <select id="filtro-talhao" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-700">
+                        <option value="">Todos os talhões</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">Variedade / Cultura</label>
+                    <input type="text" id="filtro-variedade" placeholder="Ex: Soja, Milho DKB..."
+                        class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-700">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">Status</label>
+                    <select id="filtro-status" class="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-700">
+                        <option value="">Todos</option>
+                        <option value="Planejada">Planejada</option>
+                        <option value="Em andamento">Em andamento</option>
+                        <option value="Colhida/Finalizada">Colhida / Finalizada</option>
+                    </select>
+                </div>
+                <button onclick="carregarSafras()"
+                    class="w-full bg-slate-800 hover:bg-slate-900 text-white font-medium py-1.5 px-4 rounded-lg text-xs transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="bi bi-filter"></i> Filtrar Registros
+                </button>
+            </div>
+
+            <!-- Tabela -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/75 border-b border-slate-200 text-[10px] font-mono font-semibold text-slate-500 uppercase tracking-wider">
+                            <th class="px-6 py-3.5">Talhão</th>
+                            <th class="px-6 py-3.5">Variedade / Cultura</th>
+                            <th class="px-6 py-3.5">Plantio Previsto</th>
+                            <th class="px-6 py-3.5">Colheita Prevista</th>
+                            <th class="px-6 py-3.5">Status</th>
+                            <th class="px-6 py-3.5">Produtividade</th>
+                            <th class="px-6 py-3.5 text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-safras" class="divide-y divide-slate-200 text-xs text-slate-700"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL 1 – ABERTURA DE SAFRA (Formulário de Plantio – RFS05) -->
+    <div id="modal-abertura" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden modal-enter">
+            <div class="px-6 py-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                <div>
+                    <h3 id="modal-abertura-titulo" class="text-sm font-semibold text-slate-800">Abrir Nova Safra</h3>
+                    <p class="text-[10px] text-slate-500 mt-0.5">Preencha os dados de planejamento do ciclo produtivo.</p>
+                </div>
+                <button onclick="fecharModalAbertura()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="bi bi-x-lg"></i></button>
+            </div>
+
+            <form id="form-abertura" class="p-6 space-y-4" onsubmit="return false;">
+                <input type="hidden" id="ab-id">
+
+                <!-- Talhão -->
+                <div>
+                    <label for="ab-talhao" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Talhão de Cultivo</label>
+                    <select id="ab-talhao" required
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-emerald-700">
+                        <option value="">Selecione o talhão...</option>
+                    </select>
+                </div>
+
+                <!-- Variedade -->
+                <div>
+                    <label for="ab-variedade" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Variedade da Cultura</label>
+                    <input type="text" id="ab-variedade" required placeholder="Ex: Soja M6410 IPRO / Milho DKB 360"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-emerald-700">
+                </div>
+
+                <!-- Datas lado a lado -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="ab-inicio" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Data de Plantio (Início)</label>
+                        <input type="date" id="ab-inicio" required
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-emerald-700">
+                    </div>
+                    <div>
+                        <label for="ab-colheita" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Colheita Prevista</label>
+                        <input type="date" id="ab-colheita" required
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-emerald-700">
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div>
+                    <label for="ab-status" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Status Inicial</label>
+                    <select id="ab-status" required
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-emerald-700">
+                        <option value="Planejada">Planejada</option>
+                        <option value="Em andamento">Em andamento</option>
+                    </select>
+                </div>
+
+                <!-- Aviso de bloqueio de campos (modo edição de safra iniciada) -->
+                <div id="aviso-bloqueio" class="hidden bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-[11px] text-amber-700 flex items-start gap-2">
+                    <i class="bi bi-lock-fill mt-0.5 shrink-0"></i>
+                    <span>Cultivo já iniciado. Talhão, variedade e data de plantio não podem ser alterados.</span>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-3">
+                    <button type="button" onclick="fecharModalAbertura()"
+                        class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button type="button" onclick="salvarSafra()"
+                        class="px-4 py-2 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-all cursor-pointer flex items-center gap-2">
+                        <i class="bi bi-check2-circle"></i> Salvar Safra
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2 – ENCERRAMENTO DE SAFRA (Registro de Produtividade) -->
+    <div id="modal-encerramento" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden modal-enter">
+            <div class="px-6 py-4 bg-emerald-50 border-b border-emerald-100 flex justify-between items-center">
+                <div>
+                    <h3 class="text-sm font-semibold text-emerald-900">Registrar Colheita e Encerrar Safra</h3>
+                    <p class="text-[10px] text-emerald-700 mt-0.5">Esta ação é definitiva. A safra passará para <strong>Colhida/Finalizada</strong>.</p>
+                </div>
+                <button onclick="fecharModalEncerramento()" class="text-slate-400 hover:text-slate-600 cursor-pointer"><i class="bi bi-x-lg"></i></button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                <input type="hidden" id="enc-id">
+
+                <!-- Resumo da safra -->
+                <div class="bg-slate-50 rounded-lg border border-slate-200 px-4 py-3 text-xs text-slate-700 space-y-1">
+                    <p><span class="font-semibold text-slate-500">Talhão:</span> <span id="enc-nome-talhao">—</span></p>
+                    <p><span class="font-semibold text-slate-500">Cultura:</span> <span id="enc-variedade">—</span></p>
+                    <p><span class="font-semibold text-slate-500">Plantio:</span> <span id="enc-inicio">—</span></p>
+                </div>
+
+                <!-- Data real de colheita -->
+                <div>
+                    <label for="enc-data-real" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Data Real de Colheita</label>
+                    <input type="date" id="enc-data-real" required
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-emerald-700">
+                </div>
+
+                <!-- Produtividade -->
+                <div>
+                    <label for="enc-produtividade" class="block text-[10px] font-mono font-medium text-slate-500 uppercase mb-1.5">* Produtividade Final (sc/ha)</label>
+                    <input type="number" id="enc-produtividade" step="0.1" min="0.1" required
+                        placeholder="Ex: 72.5"
+                        class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-emerald-700">
+                    <p class="text-[10px] text-slate-400 mt-1">Informe a produtividade obtida em sacas por hectare (sc/ha).</p>
+                </div>
+
+                <div class="pt-2 flex justify-end gap-3">
+                    <button type="button" onclick="fecharModalEncerramento()"
+                        class="px-4 py-2 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-all cursor-pointer">
+                        Cancelar
+                    </button>
+                    <button type="button" onclick="confirmarEncerramento()"
+                        class="px-4 py-2 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition-all cursor-pointer flex items-center gap-2">
+                        <i class="bi bi-trophy"></i> Confirmar Colheita
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/safras.js"></script>
+</body>
+</html>
