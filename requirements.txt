@@ -1,0 +1,7 @@
+fastapi==0.110.0      # Framework principal para a construção da API e das rotas (Endpoints)
+uvicorn==0.28.0       # Servidor ASGI de alta performance para rodar e testar a API FastAPI localmente
+pydantic[email]==2.6.4 # Validação de dados de entrada e checagem automática de formato de e-mails (EmailStr)
+PyJWT==2.8.0          # Geração, assinatura e decodificação de tokens de autenticação criptografados (JWT)
+python-multipart==0.0.9 # Suporte a Form()/UploadFile() nas rotas de Atividades (upload de NF/Receita)
+reportlab==4.2.0      # Geração de PDFs dos relatórios (RFS15/RFS16) com tabelas e gráficos
+qrcode[pil]==7.4.2    # Geração do QR Code de autenticidade no rodapé dos relatórios PDF
